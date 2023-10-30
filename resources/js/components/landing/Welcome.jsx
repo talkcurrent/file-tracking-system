@@ -1,0 +1,114 @@
+import { trim } from 'lodash';
+import React, { useContext, useEffect, useState } from 'react';
+import styled from 'styled-components';
+import useFetch from '../customHooks/useFetch';
+import useStrCapitalize from '../customHooks/useStrCapitalize';
+import useTheme from '../customHooks/useTheme';
+import { WelcomeContext } from '../index/WelcomeContext';
+import LoginCard from '../nav/LoginCard';
+import WelcomeNav from '../nav/WelcomeNav';
+import ActionBtn from '../reuseable/ActionBtn';
+import DocumentRoot from '../reuseable/DocumentRoot';
+import Form from '../reuseable/Form';
+import FormInput from '../reuseable/FormInput';
+import isNumber from '../reuseable/isNumber';
+import isValidEmail from '../reuseable/isValidEmail';
+import SQLDateToJSDate from '../reuseable/SQLDateToJSDate';
+import Tab from '../reuseable/Tab';
+import SectionMain from './SectionMain';
+
+const Welcome = (props) => {
+    const [state, setstate] = useState({
+        loginIn: false, statusMsg: "", loginFailed: false
+    });
+
+    const { navHeight, windowWidth } = useContext(WelcomeContext);
+
+
+
+    const handleLogin = async (email, pass, rememberMe) => {
+        const data = {
+            email: email,
+            password: pass,
+            rememberMe: rememberMe,
+        };
+
+        setstate({ ...state, loginIn: true, statusMsg: "", loginFailed: false });
+        const response = await useFetch('/login', JSON.stringify(data), "POST", false);
+
+        if (response.ok) {
+            let result = await response.json();
+            if (result == true) {
+                window.location.href = `${location.origin}/dashboard`;
+            } else {
+                setstate({
+                    ...state,
+                    loginIn: false, loginFailed: true,
+                    statusMsg: "Wrong credentials!"
+                });
+            }
+        } else {
+            setstate({
+                ...state,
+                loginIn: false,
+                statusMsg: "Something not right!",
+                loginFailed: true
+            });
+
+        }
+    };
+
+    var width = windowWidth < 801 ? "100%"
+        : windowWidth <= 992 ? "750px"
+            : windowWidth <= 1200 ? "970px"
+                : "1170px";
+
+    return (
+        <WelcomeView>
+            <LoginCard
+                bgc={ "#343a40" }
+                padding={ "20px 10px 5px 10px" }
+                margin={ "0" }
+                width={ "280px" }
+                bShadow={ "0px 0px 4px #6c757d" }
+                msg={ state.statusMsg }
+                loginIn={ state.loginIn }
+                animateShake={ state.loginFailed }
+                windowWidth={ windowWidth }
+                handleLogin={ handleLogin }
+            />
+        </WelcomeView>
+    );
+};
+
+export default Welcome;
+
+const WelcomeView = styled.div`
+    justify-self: center;
+    display: grid;
+    position: relative;
+    top: 10vh;
+    .welcom-header{
+        box-shadow: 0px 0px 7px 0 black;
+        padding: 1.5rem;
+        border-radius: 5px;
+        .uni-header1{
+            text-shadow: 0px 0px 7px black;
+            font-size: 3.5rem;
+            text-align: center;
+            color: #2196F3;
+        }
+        .uni-header2{
+            text-shadow: 0px 0px 7px black;
+            font-size: 2rem;
+            text-align: center;
+            color: whitesmoke;
+        }
+    }
+    .tab-cont{
+        display: grid;
+        justify-items: center;
+        padding: 1rem;
+        gap: 2rem;
+    }
+`;
